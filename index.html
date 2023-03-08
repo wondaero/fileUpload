@@ -63,6 +63,7 @@
         }
         
         .file-list{
+            width: 100%;
             flex: 1 0 1px;
             background: #000;
             color: #fff;
@@ -78,13 +79,14 @@
             display: flex;
             align-items: center;
             margin-bottom: 5px;
-            /* overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis; */
 
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+
+        .file-list li.file-path{
+            display: block;
         }
 
         .progress{
@@ -98,10 +100,8 @@
         .progress .bar{
             display :inline-block;
             height: 100%;
-            background: linear-gradient(to right, red, orange, yellow, green, blue, navy, purple);
             background-size: 50px;
             vertical-align: top;
-            /* background: rgba(0, 0, 0, .5); */
         }
     </style>
 </head>
@@ -219,7 +219,8 @@
                 t.fileName = fileName;
 
                 const li = document.createElement('li');
-                li.innerHTML = t.path + t.fileName;
+                li.classList.add('file-path')
+                li.innerHTML = `<strong>${t.path + t.fileName}<strong>`;
                 t.targetNum = getRandomNum(10, 100);
                 t.step++;
                 fileList.appendChild(li);
@@ -237,7 +238,7 @@
                     const li = document.createElement('li');
                     li.classList.add('pd-l10');
                     li.innerHTML = `
-                        <strong>파일을 암호화중입니다...</strong>
+                        <strong>암호화 중입니다...</strong>
                         <span class="progress">
                             <span class="bar"></span>
                         </span>
@@ -245,8 +246,10 @@
                     fileList.appendChild(li);
                 }else{
                     const bar = document.querySelectorAll('.bar');
-                    bar[bar.length - 1].style.width = `${t.currentNum / t.targetNum * 100}%`;
-                }
+                    const per = t.currentNum / t.targetNum * 100;
+                    bar[bar.length - 1].style.width = `${per}%`;
+                    bar[bar.length - 1].style.background = per < 30 ? 'red' : per < 80 ? 'yellow' : 'green';
+                };
                 t.currentNum++;
             }
             t.step2 = function(){
@@ -260,7 +263,7 @@
                     const li = document.createElement('li');
                     li.classList.add('pd-l10');
                     li.innerHTML = `
-                    <strong>파일을 업로드중입니다...</strong>
+                    <strong>업로드 중입니다...</strong>
                         <span class="progress">
                             <span class="bar"></span>
                         </span>
@@ -268,7 +271,9 @@
                     fileList.appendChild(li);
                 }else{
                     const bar = document.querySelectorAll('.bar');
-                    bar[bar.length - 1].style.width = `${t.currentNum / t.targetNum * 100}%`;
+                    const per = t.currentNum / t.targetNum * 100;
+                    bar[bar.length - 1].style.width = `${per}%`;
+                    bar[bar.length - 1].style.background = per < 30 ? 'red' : per < 80 ? 'yellow' : 'green';
                 }
                     
                 t.currentNum++;
@@ -276,7 +281,7 @@
             t.step3 = function(){
                 const li = document.createElement('li');
                 li.classList.add('pd-l10');
-                li.innerHTML = `파일을 업로드가 완료 되었습니다.`;
+                li.innerHTML = `<strong>업로드가 완료 되었습니다.<strong>`;
                 t.step = 0;
                 fileList.appendChild(li);
                 fileList.scrollTop = fileList.querySelectorAll('li').length * 80;
