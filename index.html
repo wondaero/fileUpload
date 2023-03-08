@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no" />
+    <link rel="stylesheet" href="./assets/css/normalize.css">
+    <style>
+        .pd-l20{padding-left: 20px;}
+        .wrapper{
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header{
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+        }
+
+        header ul{
+            display: flex;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        header li{
+            width: 15px;
+            height: 15px;
+            margin-right: 10px;
+            border-radius: 50%;
+            background: black;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, .5);
+        }
+
+        header .btns{
+            display: flex;
+            align-items: center;
+        }
+        
+        header .btns button{
+            outline: 0;
+            border: 0;
+            background: #eee;
+            border-radius: 5px;
+            padding: 5px 10px;
+            margin-right: 4px;
+            font-size: 12px;
+        }
+        header .btns button.hidden{
+            display: none;
+        }
+
+        header .btns button:last-child{
+            margin-right: 0;
+        }
+        
+        .file-list{
+            flex: 1 0 1px;
+            background: #000;
+            color: #fff;
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            padding: 10px;
+            transition: background 1s, color .5s;
+        }
+
+        .file-list li{
+            display: flex;
+            align-items: center;
+        }
+
+        .progress{
+            display: inline-block;
+            width: 50px;
+            height: 20px;
+            background: #fff;
+        }
+
+        .progress .bar{
+            display :inline-block;
+            height: 100%;
+            background: red;
+        }
+    </style>
+</head>
+
+
+<body>
+    <div class="wrapper">
+        <header>
+            <ul id="colors">
+                <li data-bg="#000" data-color="#fff"></li>
+                <li data-bg="navy" data-color="#fff"></li>
+                <li data-bg="gray" data-color="#0f0"></li>
+            </ul>
+            <div class="btns">
+                <button id="btn_stop" class="hidden" onclick="autoUpload1.stop()">STOP</button>
+                <button id="btn_auto" onclick="autoUpload1.start()">START</button>
+                <button onclick="autoUpload1.init()">CLEAR</button>
+            </div>
+        </header>
+        <ul id="fileList" class="file-list"></ul>
+    </div>
+    
+    <script>
+        function getRandomNum(mn, mx){return Math.floor(Math.random() * (mx - mn + 1)) + mn;};
+
+        const colors = document.querySelectorAll('#colors li');
+        const fileList = document.querySelector('#fileList');
+        const btn_stop = document.querySelector('#btn_stop');
+        const btn_auto = document.querySelector('#btn_auto');
+
+        const strings = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        const extArr = [
+            'jpg', 'png', 'gif', 'svg', 'html', 'js', 'css'
+        ];
+
+        colors.forEach(function(el){
+            el.style.background = `linear-gradient(135deg, ${el.dataset.bg} 50%, ${el.dataset.color} 0)`;
+
+            el.addEventListener('click', function(){
+                txtArea.style.background = `${el.dataset.bg}`;
+                txtArea.style.color = `${el.dataset.color}`;
+            })
+        })
+
+        const autoUpload1 = new autoUpload();
+
+        function autoUpload(){
+
+            const t = this;
+            
+            t.init = function(){
+                t.raf = false;
+                t.step = 0;
+                t.targetNum = 0;
+                t.currentNum = 0;
+                t.raf = false;
+
+                t.path = '';
+                t.fileName = '';
+
+                
+                fileList.innerHTML = '';
+                window.cancelAnimationFrame(t.raf);
+            }
+            
+            t.init();
+
+            t.start = function(){
+                const pathLen = getRandomNum(2, 5);
+                let path = '';
+                for(let i = 0; i < pathLen; i++){
+                    for(let j = 0; j < getRandomNum(5, 15); j++){
+                        path += strings[getRandomNum(0, strings.length - 1)];
+                    }
+                    path += '/';
+                }
+                
+                t.path = path;
+                
+                t.ing();
+            }
+            
+            
+            
+            t.ing = function(){
+                if(t.step === 0) t.step0();
+                else if(t.step === 1) t.step1();
+                else if(t.step === 2) t.step2();
+                else if(t.step === 3) t.step3();
+                    
+
+                t.raf = window.requestAnimationFrame(t.ing);
+            }
+            
+            t.step0 = function(){
+                let fileName = '';
+                for(let i = 0; i < getRandomNum(5, 15); i++){
+                    fileName += strings[getRandomNum(0, strings.length - 1)];
+                }
+
+                fileName += ('.' + extArr[getRandomNum(0, extArr.length - 1)]);
+                
+                t.fileName = fileName;
+
+                const li = document.createElement('li');
+                li.innerHTML = t.fileName;
+                t.targetNum = getRandomNum(10, 100);
+                t.step++;
+                fileList.appendChild(li);
+            }
+
+            t.step1 = function(){
+                if(t.targetNum <= t.currentNum){
+                    t.step++;
+                    return;
+                }
+
+                if(t.currentNum === 0){
+                    const li = document.createElement('li');
+                    li.classList.add('pd-l20');
+                    li.innerHTML = `
+                        <strong>파일을 암호화중입니다...</strong>
+                        <span class="progress">
+                            <span class="bar"></span>
+                        </span>
+                    `;
+                    fileList.appendChild(li);
+                }else{
+                    const bar = document.querySelectorAll('.bar');
+                    bar[bar.length - 1].style.width = `${t.currentNum / t.targetNum * 100}%`;
+                }
+                t.currentNum++;
+            }
+            t.step2 = function(){
+                const li = document.createElement('li');
+                li.innerHTML = `파일을 업로드중입니다...`;
+                t.step++;
+                fileList.appendChild(li);
+            }
+            t.step3 = function(){
+                const li = document.createElement('li');
+                li.innerHTML = `파일을 업로드가 완료 되었습니다.`;
+                t.step = 0;
+                fileList.appendChild(li);
+            }
+
+
+
+
+
+            // t.ing = function(){
+            //     btn_auto.classList.add('hidden');
+            //     btn_stop.classList.remove('hidden');
+
+            //     let txt = strings[getRandomNum(0, strings.length - 1)];
+
+            //     if(txt === '!') txt = '\n';
+            //     else if(txt === '@') txt = ' ';
+
+            //     txtArea.innerHTML += txt;
+
+            //     txtArea.innerHTML = txtArea.value;
+            //     txtArea.scrollTop = txtArea.innerHTML.length * 16;
+                
+            //     t.raf = window.requestAnimationFrame(t.ing);
+            // }
+
+            // t.stop = function(){
+            //     btn_auto.classList.remove('hidden');
+            //     btn_stop.classList.add('hidden');
+
+            //     window.cancelAnimationFrame(t.raf);
+            // }
+
+            // t.init = function(){
+            //     btn_auto.classList.remove('hidden');
+            //     btn_stop.classList.add('hidden');
+
+            //     window.cancelAnimationFrame(t.raf);
+            //     txtArea.innerHTML = '';
+            //     txtArea.innerText = '';
+            // }
+        }
+
+    </script>
+</body>
+
+</html>
