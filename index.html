@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no" />
     <link rel="stylesheet" href="./assets/css/normalize.css">
     <style>
-        .pd-l20{padding-left: 20px;}
+        .pd-l10{padding-left: 10px;}
         .wrapper{
             height: 100vh;
             display: flex;
@@ -45,12 +45,14 @@
         
         header .btns button{
             outline: 0;
-            border: 0;
-            background: #eee;
+            border: 1px solid #eee;
+            background: 0;
             border-radius: 5px;
             padding: 5px 10px;
             margin-right: 4px;
             font-size: 12px;
+            box-shadow: -1px -1px 1px #eee, 1px 1px 1px #eee;
+            
         }
         header .btns button.hidden{
             display: none;
@@ -69,24 +71,37 @@
             padding: 0;
             padding: 10px;
             transition: background 1s, color .5s;
+            overflow-y: auto;
         }
 
         .file-list li{
             display: flex;
             align-items: center;
+            margin-bottom: 5px;
+            /* overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis; */
+
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .progress{
             display: inline-block;
             width: 50px;
-            height: 20px;
-            background: #fff;
+            height: 10px;
+            margin-left: 10px;
+            background: rgba(255, 255, 255, .8);
         }
-
+        
         .progress .bar{
             display :inline-block;
             height: 100%;
-            background: red;
+            background: linear-gradient(to right, red, orange, yellow, green, blue, navy, purple);
+            background-size: 50px;
+            vertical-align: top;
+            /* background: rgba(0, 0, 0, .5); */
         }
     </style>
 </head>
@@ -97,12 +112,13 @@
         <header>
             <ul id="colors">
                 <li data-bg="#000" data-color="#fff"></li>
-                <li data-bg="navy" data-color="#fff"></li>
+                <li data-bg="midnightblue" data-color="#fff"></li>
                 <li data-bg="gray" data-color="#0f0"></li>
             </ul>
             <div class="btns">
                 <button id="btn_stop" class="hidden" onclick="autoUpload1.stop()">STOP</button>
                 <button id="btn_auto" onclick="autoUpload1.start()">START</button>
+                <!-- <button onclick="autoUpload1.init()">CLEAR</button> -->
                 <button onclick="autoUpload1.init()">CLEAR</button>
             </div>
         </header>
@@ -126,8 +142,8 @@
             el.style.background = `linear-gradient(135deg, ${el.dataset.bg} 50%, ${el.dataset.color} 0)`;
 
             el.addEventListener('click', function(){
-                txtArea.style.background = `${el.dataset.bg}`;
-                txtArea.style.color = `${el.dataset.color}`;
+                fileList.style.background = `${el.dataset.bg}`;
+                fileList.style.color = `${el.dataset.color}`;
             })
         })
 
@@ -138,23 +154,27 @@
             const t = this;
             
             t.init = function(){
-                t.raf = false;
                 t.step = 0;
                 t.targetNum = 0;
                 t.currentNum = 0;
-                t.raf = false;
-
+                
                 t.path = '';
                 t.fileName = '';
-
                 
                 fileList.innerHTML = '';
+
+                btn_stop.classList.add('hidden');
+                btn_auto.classList.remove('hidden');
+
                 window.cancelAnimationFrame(t.raf);
             }
             
             t.init();
 
             t.start = function(){
+                btn_stop.classList.remove('hidden');
+                btn_auto.classList.add('hidden');
+
                 const pathLen = getRandomNum(2, 5);
                 let path = '';
                 for(let i = 0; i < pathLen; i++){
@@ -169,6 +189,13 @@
                 t.ing();
             }
             
+
+            t.stop = function(){
+                btn_stop.classList.add('hidden');
+                btn_auto.classList.remove('hidden');
+
+                window.cancelAnimationFrame(t.raf);
+            }
             
             
             t.ing = function(){
@@ -192,21 +219,23 @@
                 t.fileName = fileName;
 
                 const li = document.createElement('li');
-                li.innerHTML = t.fileName;
+                li.innerHTML = t.path + t.fileName;
                 t.targetNum = getRandomNum(10, 100);
                 t.step++;
                 fileList.appendChild(li);
             }
 
             t.step1 = function(){
-                if(t.targetNum <= t.currentNum){
+                if(t.targetNum < t.currentNum){
                     t.step++;
+                    t.targetNum = getRandomNum(100, 1000);
+                    t.currentNum = 0;
                     return;
                 }
 
                 if(t.currentNum === 0){
                     const li = document.createElement('li');
-                    li.classList.add('pd-l20');
+                    li.classList.add('pd-l10');
                     li.innerHTML = `
                         <strong>파일을 암호화중입니다...</strong>
                         <span class="progress">
@@ -221,54 +250,37 @@
                 t.currentNum++;
             }
             t.step2 = function(){
-                const li = document.createElement('li');
-                li.innerHTML = `파일을 업로드중입니다...`;
-                t.step++;
-                fileList.appendChild(li);
+                if(t.targetNum < t.currentNum){
+                    t.step++;
+                    t.currentNum = 0;
+                    return;
+                }
+                
+                if(t.currentNum === 0){
+                    const li = document.createElement('li');
+                    li.classList.add('pd-l10');
+                    li.innerHTML = `
+                    <strong>파일을 업로드중입니다...</strong>
+                        <span class="progress">
+                            <span class="bar"></span>
+                        </span>
+                    `;
+                    fileList.appendChild(li);
+                }else{
+                    const bar = document.querySelectorAll('.bar');
+                    bar[bar.length - 1].style.width = `${t.currentNum / t.targetNum * 100}%`;
+                }
+                    
+                t.currentNum++;
             }
             t.step3 = function(){
                 const li = document.createElement('li');
+                li.classList.add('pd-l10');
                 li.innerHTML = `파일을 업로드가 완료 되었습니다.`;
                 t.step = 0;
                 fileList.appendChild(li);
+                fileList.scrollTop = fileList.querySelectorAll('li').length * 80;
             }
-
-
-
-
-
-            // t.ing = function(){
-            //     btn_auto.classList.add('hidden');
-            //     btn_stop.classList.remove('hidden');
-
-            //     let txt = strings[getRandomNum(0, strings.length - 1)];
-
-            //     if(txt === '!') txt = '\n';
-            //     else if(txt === '@') txt = ' ';
-
-            //     txtArea.innerHTML += txt;
-
-            //     txtArea.innerHTML = txtArea.value;
-            //     txtArea.scrollTop = txtArea.innerHTML.length * 16;
-                
-            //     t.raf = window.requestAnimationFrame(t.ing);
-            // }
-
-            // t.stop = function(){
-            //     btn_auto.classList.remove('hidden');
-            //     btn_stop.classList.add('hidden');
-
-            //     window.cancelAnimationFrame(t.raf);
-            // }
-
-            // t.init = function(){
-            //     btn_auto.classList.remove('hidden');
-            //     btn_stop.classList.add('hidden');
-
-            //     window.cancelAnimationFrame(t.raf);
-            //     txtArea.innerHTML = '';
-            //     txtArea.innerText = '';
-            // }
         }
 
     </script>
